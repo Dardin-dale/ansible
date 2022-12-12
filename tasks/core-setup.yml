@@ -1,7 +1,7 @@
 - name: Install System Packages
   become: true
   apt:
-    name: ["build-essential", "cmake", "pkg-config"]
+    name: ["build-essential", "cmake", "pkg-config", "libpthread-stub0-dev"]
   tags:
     - Install
     - neovim
@@ -15,6 +15,31 @@
     - neovim
     - core
 
+- name: Install The good stuff
+  become: true
+  apt:
+    name: ["compton", "curl", "golang", "lsof", "i3", "ccache", "ninja-build", "python3-pip", "dconf-editor", "moreutils", "ubuntu-mate-desktop"]
+  tags:
+    - Install
+    - core
 
+- name: install Clang 
+  become: true
+  apt:
+    name: ["clang", "clangd"]
+  tags:
+    - install
+    - neovim
+    - core
 
+- name: dconf i3
+  shell: dconf write /org/mate/desktop/session/required-components/windowmanager "'i3"
+  tags:
+    - install
+    - core
 
+- name: dconf i3 cont...
+  shell: dconf write /org/mate/desktop/background/show-desktop-icons "false"
+  tags:
+    - install
+    - core
