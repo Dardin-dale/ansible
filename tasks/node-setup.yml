@@ -1,23 +1,10 @@
-- name: Install nvm
-  ansible.builtin.shell: >
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
-  args:
-    creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+- name: Install nodejs and npm
+  become: true
+  apt:
+    name: ["nodejs", "npm"]
   tags:
-    - Install
-    - node
-
-- name: Install node
-  shell: nvm install node
-  tags: 
     - install
     - node
-
-      #- name: Install nodejs and npm
-      #become: true
-      # apt:
-      #name: ["nodejs", "npm"]
-      #tags:
 
 - name: npmjs prefix
   shell: mkdir -p ~/.local/.npm-global
@@ -43,3 +30,15 @@
   - install
   - node
   - npm-path
+
+- name: Install N
+  shell: npm i -g n
+  tags:
+    - install
+    - node
+
+- name: Install correct version of Node
+  shell: n 16
+  tags:
+    - install
+    - node

@@ -1,15 +1,16 @@
 - name: Install System Packages
   become: true
   apt:
-    name: ["build-essential", "cmake", "pkg-config", "libpthread-stub0-dev"]
+    name: ["build-essential", "cmake", "pkg-config"]
   tags:
     - Install
     - neovim
     - core
 
-- name: Install More Packages (lua, unzip, libtools)
+- name: Install System Packages (lua, unzip, libtools)
   become: true
-  apt: ["lua5.3", "unzip", "libtool", "libtool-bin"]
+  apt: 
+    name: ["lua5.3", "unzip", "libtool", "libtool-bin"]
   tags:
     - Install
     - neovim
@@ -23,7 +24,7 @@
     - Install
     - core
 
-- name: install Clang 
+- name: Install Clang 
   become: true
   apt:
     name: ["clang", "clangd"]
@@ -38,7 +39,7 @@
     - install
     - core
 
-- name: dconf i3 cont...
+- name: dconf i3
   shell: dconf write /org/mate/desktop/background/show-desktop-icons "false"
   tags:
     - install

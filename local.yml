@@ -9,7 +9,7 @@
         - node
         - zsh
   tasks: 
-  - include: tasks/core-setup.yml
-  - include: tasks/zsh-setup.yml
-  - include: tasks/node-setup.yml
+    #- include_tasks: tasks/core-setup.yml
+  - include_tasks: tasks/zsh-setup.yml
+  - include_tasks: tasks/node-setup.yml
 
