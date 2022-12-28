@@ -20,4 +20,4 @@ step 3 - run docker
 
 step 4 - run ansible
 
-`ansible-playbook local.yml`
+`ansib-playbook local.yml`
