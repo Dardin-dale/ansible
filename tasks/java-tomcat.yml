@@ -1,0 +1,41 @@
+---
+- name: Java and Apache Tomcat Setup
+  hosts: localhost
+  become: true
+  tags: 
+    - java
+    - tomcat
+
+  tasks:
+    - name: Install Java
+      apt:
+        name: openjdk-11-jdk
+        state: latest
+        update_cache: yes
+      tags: 
+        - java-install
+
+    - name: Download Apache Tomcat
+      get_url:
+        url: "https://downloads.apache.org/tomcat/tomcat-9/v9.0.62/bin/apache-tomcat-9.0.62.tar.gz"
+        dest: "/tmp/apache-tomcat-9.0.62.tar.gz"
+        mode: '0644'
+      tags: 
+        - tomcat-download
+
+    - name: Extract Apache Tomcat
+      unarchive:
+        src: "/tmp/apache-tomcat-9.0.62.tar.gz"
+        dest: "/opt/tomcat"
+        remote_src: yes
+        creates: "/opt/tomcat/apache-tomcat-9.0.62"
+      tags: 
+        - tomcat-extract
+
+    - name: Set environment variables
+      lineinfile:
+        path: /etc/environment
+        line: 'CATALINA_HOME="/opt/tomcat/apache-tomcat-9.0.62"'
+        state: present
+      tags: 
+        - tomcat-env

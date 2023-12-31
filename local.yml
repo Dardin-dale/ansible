@@ -9,7 +9,9 @@
         - node
         - zsh
   tasks: 
-    #- include_tasks: tasks/core-setup.yml
+  - include_tasks: tasks/core-setup.yml
   - include_tasks: tasks/zsh-setup.yml
   - include_tasks: tasks/node-setup.yml
   - include_tasks: tasks/npm_tools.yml
+  - include_tasks: tasks/dart-setup.yml
+  - include_tasks: tasks/java-tomcat.yml

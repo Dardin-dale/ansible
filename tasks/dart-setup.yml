@@ -1,0 +1,29 @@
+---
+- name: Dart Setup
+  hosts: localhost
+  become: true
+  tags: 
+    - dart
+
+  tasks:
+    - name: Add Dart apt repository
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/dart-archive-keyring.gpg] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main"
+        filename: 'dart-stable'
+      tags: 
+        - dart-repo
+
+    - name: Import Dart GPG key
+      ansible.builtin.apt_key:
+        url: https://storage.googleapis.com/download.dartlang.org/linux/debian/dart-archive-keyring.gpg
+        state: present
+      tags: 
+        - dart-key
+
+    - name: Install Dart
+      apt:
+        name: dart
+        state: latest
+        update_cache: yes
+      tags: 
+        - dart-install

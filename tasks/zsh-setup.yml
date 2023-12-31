@@ -3,6 +3,6 @@
   tags: &tags_for_zsh_tasks [ 'install', 'productivity', 'dotfiles', 'zsh' ]
     
 - name: Change shell to zsh
-  command: chsh -s $(which zsh)
+  command: chsh -s /usr/bin/zsh
   tags: *tags_for_zsh_tasks
 
