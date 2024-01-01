@@ -17,12 +17,21 @@
     - core
 
 - name: Install The good stuff
-  become: true
   apt:
-    name: ["compton", "curl", "golang", "lsof", "i3", "ccache", "ninja-build", "python3-pip", "dconf-editor", "moreutils", "ubuntu-mate-desktop"]
-  tags:
-    - Install
-    - core
+    name: "{{ item }}"
+  loop:
+    - compton
+    - curl
+    - golang
+    - lsof
+    - i3
+    - ccache
+    - ninja-build
+    - python3-pip
+    - dconf-editor
+    - moreutils
+    - ubuntu-mate-desktop
+  tags: ["install", "core"]
 
 - name: Install Clang 
   become: true

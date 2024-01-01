@@ -1,0 +1,3 @@
+I don't think it's a good idea to put things here even if its encrypted...
+
+copied to my password manager.

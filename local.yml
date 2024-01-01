@@ -4,11 +4,14 @@
     - name: Update Cache
       apt:
         update_cache: true
+        cache_valid_time: 3600
       tags:
         - install
         - node
         - zsh
   tasks: 
+  - include_tasks: tasks/ssh.yml
+  - include_tasks: tasks/git-setup.yml
   - include_tasks: tasks/core-setup.yml
   - include_tasks: tasks/zsh-setup.yml
   - include_tasks: tasks/node-setup.yml
