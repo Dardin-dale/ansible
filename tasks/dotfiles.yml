@@ -1,0 +1,20 @@
+- name: Ensure GNU Stow is installed
+  package:
+    name: stow
+    state: present
+
+- name: Clone dotfiles repository
+  git:
+    repo: ''
+    dest: '~/dotfiles'
+    clone: yes
+    update: yes
+
+- name: Apply dotfiles with GNU Stow
+  command: stow {{ item }}
+  args:
+    chdir: '~/dotfiles'
+  loop:
+    - nvim
+    - zsh
+
