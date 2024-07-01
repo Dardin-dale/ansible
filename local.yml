@@ -1,20 +1,20 @@
-- hosts: localhost
-  become: true
+---
+- name: Configure local machine
+  hosts: localhost
+  become: yes
+
   pre_tasks:
-    - name: Update Cache
+    - name: Update apt cache
       apt:
-        update_cache: true
-        cache_valid_time: 3600
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+      changed_when: false
       tags:
-        - install
-        - node
-        - zsh
-  tasks: 
-  - include_tasks: tasks/ssh.yml
-  - include_tasks: tasks/git-setup.yml
-  - include_tasks: tasks/core-setup.yml
-  - include_tasks: tasks/zsh-setup.yml
-  - include_tasks: tasks/node-setup.yml
-  - include_tasks: tasks/npm_tools.yml
-  - include_tasks: tasks/dart-setup.yml
-  - include_tasks: tasks/java-tomcat.yml
+        - always
+
+  roles:
+    - common
+    # Other roles will be added here as we create them
+
+  tags:
+    - always
