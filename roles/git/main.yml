@@ -1,0 +1,13 @@
+- name: Configure personal Git
+  git_config:
+    name: user.email
+    scope: global
+    value: "{{ personal_git_email }}"
+  when: personal_git_email is defined
+
+- name: Configure work Git
+  git_config:
+    name: user.email
+    scope: global
+    value: "{{ work_git_email }}"
+  when: work_git_email is defined
