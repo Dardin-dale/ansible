@@ -1,55 +1,76 @@
-- name: Install System Packages
+---
+- name: Install Core Packages
   become: true
   apt:
-    name: ["build-essential", "cmake", "pkg-config"]
-  tags:
-    - Install
-    - neovim
+    name:
+      # Basic development tools
+      - build-essential
+      - cmake
+      - pkg-config
+      - curl
+      - git
+      - unzip
+      
+      # System utilities
+      - lsof
+      - moreutils
+      - htop
+      - ripgrep
+      - fd-find
+      - fzf
+      
+      # Compilation and build tools
+      - ccache
+      - ninja-build
+      - libtool
+      - libtool-bin
+      
+      # Programming languages and related tools
+      - python3-pip
+      - python3-venv
+      - lua5.3
+      - clang
+      - clangd
+      
+      # Shell and terminal utilities
+      - zsh
+      - tmux
+      
+      # Text editors
+      - neovim
+      
+      # Container tools
+      - docker.io
+      
+      # GNOME tools
+      - dconf-editor
+    state: present
+  tags: 
+    - install
     - core
+    - neovim
 
-- name: Install System Packages (lua, unzip, libtools)
+- name: Install Wayland-specific packages
   become: true
-  apt: 
-    name: ["lua5.3", "unzip", "libtool", "libtool-bin"]
-  tags:
-    - Install
-    - neovim
-    - core
-
-- name: Install The good stuff
   apt:
-    name: "{{ item }}"
-  loop:
-    - compton
-    - curl
-    - golang
-    - lsof
-    - i3
-    - ccache
-    - ninja-build
-    - python3-pip
-    - dconf-editor
-    - moreutils
-    - ubuntu-mate-desktop
-  tags: ["install", "core"]
-
-- name: Install Clang 
-  become: true
-  apt:
-    name: ["clang", "clangd"]
-  tags:
-    - install
-    - neovim
-    - core
-
-- name: dconf i3
-  shell: dconf write /org/mate/desktop/session/required-components/windowmanager "'i3"
+    name:
+      - sway
+      - wl-clipboard
+    state: present
   tags:
     - install
     - core
+    - wayland
 
-- name: dconf i3
-  shell: dconf write /org/mate/desktop/background/show-desktop-icons "false"
-  tags:
-    - install
-    - core
+# Keep this commented out unless you need X11 specific packages
+# - name: Install X11-specific packages
+#   become: true
+#   apt:
+#     name:
+#       - picom
+#       - i3
+#     state: present
+#   tags:
+#     - install
+#     - core
+#     - x11

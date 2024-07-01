@@ -1,10 +1,11 @@
 ---
 - name: Configure local machine
   hosts: localhost
-  become: yes
+  become: no
 
   pre_tasks:
     - name: Update apt cache
+      become: yes
       apt:
         update_cache: yes
       when: ansible_os_family == "Debian"
@@ -12,9 +13,21 @@
       tags:
         - always
 
+  tasks:
+    - name: Include sensitive variables
+      include_vars:
+        dir: vars/sensitive
+        ignore_files: 
+          - ".example"
+          - ".sample"
+      tags:
+        - always
+
   roles:
-    - common
-    # Other roles will be added here as we create them
+    - role: common
+      become: yes
+    - role: git
+      # Add other roles as needed
 
   tags:
     - always
