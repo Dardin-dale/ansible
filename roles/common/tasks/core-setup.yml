@@ -1,0 +1,76 @@
+---
+- name: Install Core Packages
+  become: true
+  apt:
+    name:
+      # Basic development tools
+      - build-essential
+      - cmake
+      - pkg-config
+      - curl
+      - git
+      - unzip
+      
+      # System utilities
+      - lsof
+      - moreutils
+      - htop
+      - ripgrep
+      - fd-find
+      - fzf
+      
+      # Compilation and build tools
+      - ccache
+      - ninja-build
+      - libtool
+      - libtool-bin
+      
+      # Programming languages and related tools
+      - python3-pip
+      - python3-venv
+      - lua5.3
+      - clang
+      - clangd
+      
+      # Shell and terminal utilities
+      - zsh
+      - tmux
+      
+      # Text editors
+      - neovim
+      
+      # Container tools
+      - docker.io
+      
+      # GNOME tools
+      - dconf-editor
+    state: present
+  tags: 
+    - install
+    - core
+    - neovim
+
+- name: Install Wayland-specific packages
+  become: true
+  apt:
+    name:
+      - sway
+      - wl-clipboard
+    state: present
+  tags:
+    - install
+    - core
+    - wayland
+
+# Keep this commented out unless you need X11 specific packages
+# - name: Install X11-specific packages
+#   become: true
+#   apt:
+#     name:
+#       - picom
+#       - i3
+#     state: present
+#   tags:
+#     - install
+#     - core
+#     - x11

@@ -1,0 +1,12 @@
+---
+- name: Include core setup tasks
+  include_tasks: core-setup.yml
+  tags:
+    - core
+    - setup
+
+- name: Include SSH setup tasks
+  include_tasks: ssh.yml
+  tags:
+    - ssh
+    - setup
