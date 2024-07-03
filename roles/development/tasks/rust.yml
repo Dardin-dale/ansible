@@ -1,0 +1,36 @@
+---
+- name: Check if Rust is installed
+  command: which rustc
+  register: rust_check
+  ignore_errors: yes
+  changed_when: false
+
+- name: Download Rustup installer
+  get_url:
+    url: https://sh.rustup.rs
+    dest: /tmp/rustup.sh
+    mode: '0755'
+  when: rust_check.rc != 0
+
+- name: Install Rust
+  command: /tmp/rustup.sh -y
+  args:
+    creates: "{{ ansible_env.HOME }}/.cargo/bin/rustc"
+  when: rust_check.rc != 0
+
+- name: Add Rust to shell configuration files
+  blockinfile:
+    path: "{{ item }}"
+    block: |
+      export PATH="$HOME/.cargo/bin:$PATH"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Rust"
+  loop:
+    - "{{ ansible_env.HOME }}/.bashrc"
+    - "{{ ansible_env.HOME }}/.zshrc"
+
+- name: Install common Rust tools
+  command: rustup component add {{ item }}
+  loop:
+    - rustfmt
+    - clippy
+  changed_when: false

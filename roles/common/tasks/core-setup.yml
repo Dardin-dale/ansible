@@ -18,6 +18,7 @@
       - ripgrep
       - fd-find
       - fzf
+      - tree
       
       # Compilation and build tools
       - ccache

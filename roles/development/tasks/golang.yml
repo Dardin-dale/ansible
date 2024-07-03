@@ -1,0 +1,37 @@
+---
+- name: Check if Go is installed
+  command: which go
+  register: go_check
+  ignore_errors: yes
+  changed_when: false
+
+- name: Download the latest Go tarball
+  get_url:
+    url: https://go.dev/dl/go1.20.5.linux-amd64.tar.gz
+    dest: /tmp/go.tar.gz
+  when: go_check.rc != 0
+
+- name: Extract Go tarball
+  unarchive:
+    src: /tmp/go.tar.gz
+    dest: /usr/local
+    remote_src: yes
+  become: yes
+  when: go_check.rc != 0
+
+- name: Check if .zshrc exists
+  stat:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+  register: zshrc_check
+
+- name: Add Go to PATH in shell configuration files
+  blockinfile:
+    path: "{{ item }}"
+    block: |
+      export PATH=$PATH:/usr/local/go/bin
+      export PATH=$PATH:$HOME/go/bin
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Golang"
+  loop:
+    - "{{ ansible_env.HOME }}/.bashrc"
+    - "{{ ansible_env.HOME }}/.zshrc"
+  when: (item != ansible_env.HOME + '/.zshrc') or zshrc_check.stat.exists

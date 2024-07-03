@@ -1,0 +1,33 @@
+---
+- name: Ensure sw directory exists
+  file:
+    path: "{{ ansible_env.HOME }}/sw"
+    state: directory
+    mode: '0755'
+
+- name: Clone dotfiles repository
+  git:
+    repo: "{{ dotfiles_repo }}"
+    dest: "{{ ansible_env.HOME }}/sw/dotfiles"
+    version: "{{ dotfiles_version | default('main') }}"
+    update: yes
+
+- name: Fix git repository permissions
+  file:
+    path: "{{ ansible_env.HOME }}/sw/dotfiles"
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+    recurse: yes
+  become: yes
+
+- name: Include Zsh setup tasks
+  include_tasks: zsh.yml
+
+- name: Create symlinks for other dotfiles
+  file:
+    src: "{{ ansible_env.HOME }}/sw/dotfiles/{{ item.src }}"
+    dest: "{{ ansible_env.HOME }}/{{ item.dest }}"
+    state: link
+    force: yes
+  loop:
+    - { src: 'nvim', dest: '.config/nvim' }

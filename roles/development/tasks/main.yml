@@ -1,0 +1,18 @@
+---
+- name: Include Golang setup tasks
+  include_tasks: golang.yml
+  tags:
+    - golang
+    - development
+
+- name: Include Node.js setup tasks
+  include_tasks: node.yml
+  tags:
+    - node
+    - development
+
+- name: Include Rust setup tasks
+  include_tasks: rust.yml
+  tags:
+    - rust
+    - development
