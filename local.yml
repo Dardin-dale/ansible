@@ -28,7 +28,6 @@
       become: yes
     - role: git
     - role: dotfiles
-      become: yes
     #- role: development
       #become: yes
       # Add other roles as needed
