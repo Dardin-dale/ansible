@@ -28,9 +28,18 @@
     - "{{ ansible_env.HOME }}/.bashrc"
     - "{{ ansible_env.HOME }}/.zshrc"
 
-- name: Install common Rust tools
+- name: Install common Rust tools and components
   command: rustup component add {{ item }}
   loop:
     - rustfmt
     - clippy
+    - rust-src
+    - rust-analysis
   changed_when: false
+
+- name: Install rust-analyzer
+  shell: |
+    rustup +nightly component add rust-analyzer-preview
+    ln -s ~/.rustup/toolchains/nightly-*/bin/rust-analyzer ~/.cargo/bin/
+  args:
+    creates: "{{ ansible_env.HOME }}/.cargo/bin/rust-analyzer"

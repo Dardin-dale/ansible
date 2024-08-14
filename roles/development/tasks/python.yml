@@ -1,0 +1,62 @@
+---
+- name: Ensure pip is up to date
+  pip:
+    name: pip
+    state: latest
+    extra_args: --user
+  tags:
+    - python
+    - pip
+
+- name: Install Jupyter
+  pip:
+    name: 
+      - jupyter
+      - jupyterlab
+    state: latest
+    extra_args: --user
+  tags:
+    - python
+    - jupyter
+
+- name: Install PyTorch
+  pip:
+    name: torch
+    state: latest
+    extra_args: --user
+  tags:
+    - python
+    - pytorch
+
+- name: Create a Python virtual environment
+  command: python3 -m venv {{ ansible_env.HOME }}/.venvs/pytorch
+  args:
+    creates: "{{ ansible_env.HOME }}/.venvs/pytorch"
+  tags:
+    - python
+    - venv
+
+- name: Install PyTorch in the virtual environment
+  pip:
+    name: 
+      - torch
+      - jupyter
+      - jupyterlab
+    virtualenv: "{{ ansible_env.HOME }}/.venvs/pytorch"
+    virtualenv_command: python3 -m venv
+  tags:
+    - python
+    - venv
+    - pytorch
+
+- name: Add virtual environment activation to shell config
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/{{ item }}"
+    line: 'alias activate_pytorch="source {{ ansible_env.HOME }}/.venvs/pytorch/bin/activate"'
+    state: present
+  loop:
+    - .bashrc
+    - .zshrc
+  tags:
+    - python
+    - venv

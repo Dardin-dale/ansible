@@ -5,9 +5,16 @@
   ignore_errors: yes
   changed_when: false
 
+- name: Get latest Go version
+  uri:
+    url: https://go.dev/VERSION?m=text
+    return_content: yes
+  register: go_version
+  when: go_check.rc != 0
+
 - name: Download the latest Go tarball
   get_url:
-    url: https://go.dev/dl/go1.20.5.linux-amd64.tar.gz
+    url: "https://go.dev/dl/{{ go_version.content | trim }}.linux-amd64.tar.gz"
     dest: /tmp/go.tar.gz
   when: go_check.rc != 0
 
@@ -19,11 +26,6 @@
   become: yes
   when: go_check.rc != 0
 
-- name: Check if .zshrc exists
-  stat:
-    path: "{{ ansible_env.HOME }}/.zshrc"
-  register: zshrc_check
-
 - name: Add Go to PATH in shell configuration files
   blockinfile:
     path: "{{ item }}"
@@ -34,4 +36,9 @@
   loop:
     - "{{ ansible_env.HOME }}/.bashrc"
     - "{{ ansible_env.HOME }}/.zshrc"
-  when: (item != ansible_env.HOME + '/.zshrc') or zshrc_check.stat.exists
+
+- name: Clean up Go tarball
+  file:
+    path: /tmp/go.tar.gz
+    state: absent
+  when: go_check.rc != 0

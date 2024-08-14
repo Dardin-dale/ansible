@@ -16,3 +16,21 @@
   tags:
     - rust
     - development
+    
+- name: Include Docker setup tasks
+  include_tasks: docker.yml
+  tags:
+    - node
+    - development
+    
+- name: Include VS Code setup tasks
+  include_tasks: vscode.yml
+  tags:
+    - node
+    - development
+
+- name: Include Python setup tasks
+  include_tasks: python.yml
+  tags:
+    - python
+    - development
