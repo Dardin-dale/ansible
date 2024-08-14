@@ -22,4 +22,4 @@ step 3 - run docker
 
 step 4 - run ansible from the container
 
-`ansible-playbook local.yml`
+`ansible-playbook local.yml --ask-become-pass`
