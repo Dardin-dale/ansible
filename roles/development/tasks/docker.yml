@@ -1,4 +1,13 @@
 ---
+- name: Remove conflicting packages
+  become: yes
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+      - containerd
+    state: absent
+
 - name: Install Docker dependencies
   become: yes
   apt:
@@ -30,13 +39,20 @@
       - docker-ce-cli
       - containerd.io
     state: present
+    update_cache: yes
+
+- name: Get the username running the playbook
+  command: whoami
+  register: username_result
+  changed_when: false
 
 - name: Add user to docker group
   become: yes
   user:
-    name: "{{ ansible_user }}"
+    name: "{{ username_result.stdout }}"
     groups: docker
     append: yes
+  when: username_result.stdout != "root"
 
 - name: Install Docker Compose
   become: yes
@@ -44,3 +60,10 @@
     url: https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-linux-x86_64
     dest: /usr/local/bin/docker-compose
     mode: '0755'
+
+- name: Ensure Docker service is started and enabled
+  become: yes
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
