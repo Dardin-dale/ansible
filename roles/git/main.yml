@@ -39,7 +39,6 @@
   tags:
     - git-config
 
-# Work-specific Git configuration
 - name: Git work setup email
   git_config:
     name: user.email

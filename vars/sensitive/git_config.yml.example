@@ -1,3 +1,7 @@
 ---
 personal_git_email: "your.personal@email.com"
 work_git_email: "your.work@email.com"
+
+# Dotfiles repository
+dotfiles_repo: "https://github.com/yourusername/dotfiles.git"
+dotfiles_version: "main"

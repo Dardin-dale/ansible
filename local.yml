@@ -27,7 +27,39 @@
     - role: common
       become: yes
     - role: git
+    - role: dotfiles
+    - role: development
+      #become: yes
       # Add other roles as needed
+      
+  post_tasks:
+    - name: Get current shell
+      command: echo $SHELL
+      register: current_shell
+      changed_when: false
+
+    - name: Get Zsh path
+      command: which zsh
+      register: zsh_path
+      changed_when: false
+
+    - name: Change shell to Zsh
+      become: yes
+      user:
+        name: "{{ ansible_env.USER }}"
+        shell: "{{ zsh_path.stdout }}"
+      when: current_shell.stdout != zsh_path.stdout
+
+    - name: Source .zshrc
+      shell: source ~/.zshrc
+      args:
+        executable: "{{ zsh_path.stdout }}"
+      when: current_shell.stdout != zsh_path.stdout
+
+    - name: Notify user about shell change
+      debug:
+        msg: "Your shell has been changed to Zsh and .zshrc has been sourced. New terminal windows will now use Zsh."
+      when: current_shell.stdout != zsh_path.stdout
 
   tags:
     - always

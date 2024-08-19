@@ -1,0 +1,69 @@
+---
+- name: Remove conflicting packages
+  become: yes
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+      - containerd
+    state: absent
+
+- name: Install Docker dependencies
+  become: yes
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    state: present
+
+- name: Add Docker GPG key
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker repository
+  become: yes
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+
+- name: Install Docker
+  become: yes
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+    update_cache: yes
+
+- name: Get the username running the playbook
+  command: whoami
+  register: username_result
+  changed_when: false
+
+- name: Add user to docker group
+  become: yes
+  user:
+    name: "{{ username_result.stdout }}"
+    groups: docker
+    append: yes
+  when: username_result.stdout != "root"
+
+- name: Install Docker Compose
+  become: yes
+  get_url:
+    url: https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: '0755'
+
+- name: Ensure Docker service is started and enabled
+  become: yes
+  systemd:
+    name: docker
+    state: started
+    enabled: yes

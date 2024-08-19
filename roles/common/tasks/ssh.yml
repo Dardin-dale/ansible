@@ -1,3 +1,4 @@
+---
 - name: Ensure .ssh directory exists
   file:
     path: "{{ ansible_env.HOME }}/.ssh"
@@ -18,19 +19,21 @@
     mode: '0644'
   when: ssh_public_key is defined
 
-- name: Ensure ssh-agent is running
+- name: Start SSH agent
   shell: |
-    if ! pgrep -u "$USER" ssh-agent > /dev/null; then
-      ssh-agent > ~/.ssh-agent-thing
-    fi
+    eval $(ssh-agent -s)
+    echo $SSH_AUTH_SOCK
   args:
     executable: /bin/bash
-    creates: ~/.ssh-agent-thing
+  register: ssh_agent_start
 
-- name: Load SSH key into ssh-agent
+- name: Debug SSH agent start
+  debug:
+    var: ssh_agent_start
+
+- name: Add SSH key to ssh-agent
   shell: |
-    source ~/.ssh-agent-thing
-    ssh-add {{ ansible_env.HOME }}/.ssh/id_ed25519
+    SSH_AUTH_SOCK="{{ ssh_agent_start.stdout_lines[-1] }}" ssh-add {{ ansible_env.HOME }}/.ssh/id_ed25519
   args:
     executable: /bin/bash
   register: ssh_add_result
@@ -40,8 +43,6 @@
     - "'Identity added' not in ssh_add_result.stdout"
     - "'Already added' not in ssh_add_result.stderr"
 
-- name: Ensure .bashrc loads ssh-agent
-  lineinfile:
-    path: "{{ ansible_env.HOME }}/.bashrc"
-    line: "source ~/.ssh-agent-thing"
-    state: present
+- name: Debug ssh-add result
+  debug:
+    var: ssh_add_result

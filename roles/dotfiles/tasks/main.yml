@@ -1,0 +1,31 @@
+---
+- name: Ensure sw directory exists
+  file:
+    path: "{{ ansible_env.HOME }}/sw"
+    state: directory
+    mode: '0755'
+
+- name: Clone dotfiles repository
+  git:
+    repo: "{{ dotfiles_repo }}"
+    dest: "{{ ansible_env.HOME }}/sw/dotfiles"
+    version: "{{ dotfiles_version | default('main') }}"
+    accept_newhostkey: yes
+    key_file: "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+    ssh_opts: "-o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes"
+    update: yes
+  environment:
+    GIT_SSH_COMMAND: "ssh -v"
+  become: no
+
+- name: Include Zsh setup tasks
+  include_tasks: zsh.yml
+
+- name: Create symlinks for other dotfiles
+  file:
+    src: "{{ ansible_env.HOME }}/sw/dotfiles/{{ item.src }}"
+    dest: "{{ ansible_env.HOME }}/{{ item.dest }}"
+    state: link
+    force: yes
+  loop:
+    - { src: 'nvim', dest: '.config/nvim' }

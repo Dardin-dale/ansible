@@ -1,0 +1,71 @@
+---
+- name: Install Python and related packages
+  become: true
+  apt:
+    name:
+      - python3
+      - python3-venv
+      - python3-pip
+      - python3-dev
+      - ipython3
+    state: present
+  tags:
+    - install
+    - python
+
+- name: Create a Python virtual environment
+  command: python3 -m venv {{ ansible_env.HOME }}/.venvs/python
+  args:
+    creates: "{{ ansible_env.HOME }}/.venvs/python"
+  tags:
+    - python
+    - venv
+
+- name: Upgrade pip in virtual environment
+  pip:
+    name: pip
+    state: latest
+    virtualenv: "{{ ansible_env.HOME }}/.venvs/python"
+  tags:
+    - python
+    - pip
+
+- name: Install Jupyter in virtual environment
+  pip:
+    name: 
+      - jupyter
+      - jupyterlab
+    state: latest
+    virtualenv: "{{ ansible_env.HOME }}/.venvs/python"
+  tags:
+    - python
+    - jupyter
+
+- name: Install PyTorch in virtual environment
+  pip:
+    name: torch
+    state: latest
+    virtualenv: "{{ ansible_env.HOME }}/.venvs/python"
+  tags:
+    - python
+    - pytorch
+
+- name: Add virtual environment activation alias to shell config
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/{{ item }}"
+    line: 'alias activate_python="source {{ ansible_env.HOME }}/.venvs/python/bin/activate"'
+    state: present
+  loop:
+    - .bashrc
+    - .zshrc
+  tags:
+    - python
+    - venv
+
+- name: Activate Python virtual environment
+  shell: source {{ ansible_env.HOME }}/.venvs/python/bin/activate
+  args:
+    executable: /bin/bash
+  tags:
+    - python
+    - venv

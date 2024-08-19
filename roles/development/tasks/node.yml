@@ -1,0 +1,53 @@
+---
+- name: Check if NVM is installed
+  stat:
+    path: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+  register: nvm_check
+
+- name: Install latest NVM
+  shell:
+    cmd: >
+      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+  args:
+    creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+
+- name: Add NVM to shell configuration files
+  blockinfile:
+    path: "{{ item }}"
+    block: |
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - NVM"
+  loop:
+    - "{{ ansible_env.HOME }}/.bashrc"
+    - "{{ ansible_env.HOME }}/.zshrc"
+
+- name: Install latest LTS version of Node.js
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install --lts
+  args:
+    executable: /bin/bash
+  register: node_install
+  changed_when: "'is already installed.' not in node_install.stderr"
+
+- name: Set default Node.js version
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm alias default node
+  args:
+    executable: /bin/bash
+
+- name: Install global npm packages
+  npm:
+    name: "{{ item }}"
+    global: yes
+  loop:
+    - yarn
+    - typescript
+    - ts-node
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.nvm/versions/node/{{ node_install.stdout_lines[-1] | regex_search('v[0-9.]+') }}/bin:{{ ansible_env.PATH }}"
