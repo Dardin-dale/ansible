@@ -8,12 +8,15 @@
       - python3-pip
       - python3-dev
       - ipython3
+      - python3.10
+      - python3.10-venv
+      - git
     state: present
   tags:
     - install
     - python
 
-- name: Create a Python virtual environment
+- name: Create a global Python virtual environment
   command: python3 -m venv {{ ansible_env.HOME }}/.venvs/python
   args:
     creates: "{{ ansible_env.HOME }}/.venvs/python"
@@ -21,7 +24,7 @@
     - python
     - venv
 
-- name: Upgrade pip in virtual environment
+- name: Upgrade pip in global virtual environment
   pip:
     name: pip
     state: latest
@@ -30,30 +33,65 @@
     - python
     - pip
 
-- name: Install Jupyter in virtual environment
+- name: Install common Python libraries in global virtual environment
   pip:
     name: 
       - jupyter
       - jupyterlab
+      - torch
+      - torchvision
+      - torchaudio
+      - matplotlib
+      - pandas
+      - numpy
+      - scipy
+      - requests
+      - beautifulsoup4
+      - plotly
+      - dash
+      - flask
+      - sqlalchemy
+      - psycopg2-binary
+      - nltk
+      - tqdm
+      - transformers
+      - tensorboard
     state: latest
     virtualenv: "{{ ansible_env.HOME }}/.venvs/python"
   tags:
     - python
-    - jupyter
+    - libraries
 
-- name: Install PyTorch in virtual environment
+- name: Clone Flux repository
+  git:
+    repo: 'https://github.com/black-forest-labs/flux'
+    dest: "{{ ansible_env.HOME }}/flux"
+    version: main
+  tags:
+    - flux
+
+- name: Create Flux-specific Python virtual environment
+  command: python3.10 -m venv {{ ansible_env.HOME }}/flux/.venv
+  args:
+    creates: "{{ ansible_env.HOME }}/flux/.venv"
+  tags:
+    - flux
+    - venv
+
+- name: Install Flux dependencies
   pip:
-    name: torch
-    state: latest
-    virtualenv: "{{ ansible_env.HOME }}/.venvs/python"
+    name: -e '.[all]'
+    virtualenv: "{{ ansible_env.HOME }}/flux/.venv"
+    chdir: "{{ ansible_env.HOME }}/flux"
   tags:
-    - python
-    - pytorch
+    - flux
 
-- name: Add virtual environment activation alias to shell config
+- name: Add virtual environment activation aliases to shell config
   lineinfile:
     path: "{{ ansible_env.HOME }}/{{ item }}"
-    line: 'alias activate_python="source {{ ansible_env.HOME }}/.venvs/python/bin/activate"'
+    line: |
+      alias activate_python="source {{ ansible_env.HOME }}/.venvs/python/bin/activate"
+      alias activate_flux="source {{ ansible_env.HOME }}/flux/.venv/bin/activate"
     state: present
   loop:
     - .bashrc
@@ -61,11 +99,4 @@
   tags:
     - python
     - venv
-
-- name: Activate Python virtual environment
-  shell: source {{ ansible_env.HOME }}/.venvs/python/bin/activate
-  args:
-    executable: /bin/bash
-  tags:
-    - python
-    - venv
+    - flux
