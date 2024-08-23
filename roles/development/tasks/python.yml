@@ -8,8 +8,6 @@
       - python3-pip
       - python3-dev
       - ipython3
-      - python3.10
-      - python3.10-venv
       - git
     state: present
   tags:
@@ -38,9 +36,6 @@
     name: 
       - jupyter
       - jupyterlab
-      - torch
-      - torchvision
-      - torchaudio
       - matplotlib
       - pandas
       - numpy
@@ -54,44 +49,16 @@
       - psycopg2-binary
       - nltk
       - tqdm
-      - transformers
-      - tensorboard
     state: latest
     virtualenv: "{{ ansible_env.HOME }}/.venvs/python"
   tags:
     - python
     - libraries
 
-- name: Clone Flux repository
-  git:
-    repo: 'https://github.com/black-forest-labs/flux'
-    dest: "{{ ansible_env.HOME }}/flux"
-    version: main
-  tags:
-    - flux
-
-- name: Create Flux-specific Python virtual environment
-  command: python3.10 -m venv {{ ansible_env.HOME }}/flux/.venv
-  args:
-    creates: "{{ ansible_env.HOME }}/flux/.venv"
-  tags:
-    - flux
-    - venv
-
-- name: Install Flux dependencies
-  pip:
-    name: -e '.[all]'
-    virtualenv: "{{ ansible_env.HOME }}/flux/.venv"
-    chdir: "{{ ansible_env.HOME }}/flux"
-  tags:
-    - flux
-
-- name: Add virtual environment activation aliases to shell config
+- name: Add virtual environment activation alias to shell config
   lineinfile:
     path: "{{ ansible_env.HOME }}/{{ item }}"
-    line: |
-      alias activate_python="source {{ ansible_env.HOME }}/.venvs/python/bin/activate"
-      alias activate_flux="source {{ ansible_env.HOME }}/flux/.venv/bin/activate"
+    line: 'alias activate_python="source {{ ansible_env.HOME }}/.venvs/python/bin/activate"'
     state: present
   loop:
     - .bashrc
@@ -99,4 +66,3 @@
   tags:
     - python
     - venv
-    - flux
