@@ -4,4 +4,4 @@ ssh_private_key: |
   Your private key content here
   -----END OPENSSH PRIVATE KEY-----
 
-ssh_public_key: "your_public_key_content_here"
+ssh_public_key: "your_public_key_content_here youremail@host.com"

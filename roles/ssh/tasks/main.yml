@@ -1,0 +1,50 @@
+# roles/ssh/tasks/main.yml
+---
+- name: Ensure .ssh directory exists
+  file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: '0700'
+
+- name: Add SSH private key (Ed25519)
+  copy:
+    content: "{{ ssh_private_key }}"
+    dest: "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+    mode: '0600'
+  when: ssh_private_key is defined
+
+- name: Add SSH public key (Ed25519)
+  copy:
+    content: "{{ ssh_public_key }}"
+    dest: "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
+    mode: '0644'
+  when: ssh_public_key is defined
+
+- name: Ensure SSH agent is running
+  shell: |
+    eval $(ssh-agent -s)
+    ssh-add {{ ansible_env.HOME }}/.ssh/id_ed25519
+  args:
+    executable: /bin/bash
+
+- name: Add SSH agent setup to shell config files
+  blockinfile:
+    path: "{{ item }}"
+    block: |
+      if [ -z "$SSH_AUTH_SOCK" ] ; then
+        eval $(ssh-agent -s)
+        ssh-add {{ ansible_env.HOME }}/.ssh/id_ed25519
+      fi
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - SSH agent setup"
+  loop:
+    - "{{ ansible_env.HOME }}/.bashrc"
+
+- name: Test GitHub SSH connection
+  shell: ssh -T git@github.com
+  register: github_ssh_test
+  failed_when: false
+  changed_when: false
+
+- name: Show GitHub SSH test result
+  debug:
+    var: github_ssh_test

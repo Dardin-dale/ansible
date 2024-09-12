@@ -41,7 +41,7 @@
       - neovim
       
       # GNOME tools
-      - dconf-editor
+      #- dconf-editor
     state: present
   tags: 
     - install
@@ -58,6 +58,7 @@
   tags:
     - install
     - core
+    - wayland
 
 - name: Remove conflicting packages
   become: true
@@ -69,7 +70,7 @@
     state: absent
   tags:
     - install
-    - core   - wayland
+    - core
 
 # Keep this commented out unless you need X11 specific packages
 # - name: Install X11-specific packages

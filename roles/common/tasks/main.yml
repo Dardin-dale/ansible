@@ -4,9 +4,3 @@
   tags:
     - core
     - setup
-
-- name: Include SSH setup tasks
-  include_tasks: ssh.yml
-  tags:
-    - ssh
-    - setup

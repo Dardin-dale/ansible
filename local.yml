@@ -13,13 +13,18 @@
       tags:
         - always
 
-  tasks:
+    - name: Check for sensitive variables directory
+      stat:
+        path: "{{ playbook_dir }}/vars/sensitive"
+      register: sensitive_dir
+
     - name: Include sensitive variables
       include_vars:
         dir: vars/sensitive
-        ignore_files: 
+        ignore_files:
           - ".example"
           - ".sample"
+      register: included_vars
       tags:
         - always
 
@@ -27,11 +32,12 @@
     - role: common
       become: yes
     - role: git
+    - role: ssh
     - role: dotfiles
     - role: development
-      #become: yes
+      # become: yes
       # Add other roles as needed
-      
+
   post_tasks:
     - name: Get current shell
       command: echo $SHELL

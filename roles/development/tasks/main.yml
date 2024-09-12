@@ -28,9 +28,3 @@
   tags:
     - node
     - development
-
-- name: Include Python setup tasks
-  include_tasks: python.yml
-  tags:
-    - python
-    - development
