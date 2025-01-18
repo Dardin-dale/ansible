@@ -5,25 +5,34 @@
     state: directory
     mode: '0755'
 
+- name: Remove existing dotfiles if present
+  file:
+    path: "{{ ansible_env.HOME }}/sw/dotfiles"
+    state: absent
+  when: clean_install is defined and clean_install
+
 - name: Clone dotfiles repository
   git:
     repo: "{{ dotfiles_repo }}"
     dest: "{{ ansible_env.HOME }}/sw/dotfiles"
     version: "{{ dotfiles_version | default('main') }}"
+    force: yes
     update: yes
-    accept_hostkey: yes
-  environment:
-    GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
-    SSH_AUTH_SOCK: "{{ ssh_agent_start.stdout_lines[-1] }}"
 
-- name: Include Zsh setup tasks
-  include_tasks: zsh.yml
+- name: Initialize and update nvim submodule
+  shell: |
+    cd {{ ansible_env.HOME }}/sw/dotfiles
+    git submodule update --init --recursive nvim
+  changed_when: false
 
-- name: Create symlinks for other dotfiles
+- name: Create symlinks for dotfiles
   file:
     src: "{{ ansible_env.HOME }}/sw/dotfiles/{{ item.src }}"
     dest: "{{ ansible_env.HOME }}/{{ item.dest }}"
     state: link
     force: yes
   loop:
+    - { src: 'zsh/.zshrc', dest: '.zshrc' }
+    - { src: 'zsh/.zshenv', dest: '.zshenv' }
+    - { src: 'zsh/.zprofile', dest: '.zprofile' }
     - { src: 'nvim', dest: '.config/nvim' }
