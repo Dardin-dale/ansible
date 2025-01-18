@@ -8,10 +8,13 @@
 - name: Clone dotfiles repository
   git:
     repo: "{{ dotfiles_repo }}"
-    version: "{{ dotfiles_version | default('main') }}"
     dest: "{{ ansible_env.HOME }}/sw/dotfiles"
-    accept_hostkey: yes
+    version: "{{ dotfiles_version | default('main') }}"
     update: yes
+    accept_hostkey: yes
+  environment:
+    GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
+    SSH_AUTH_SOCK: "{{ ssh_agent_start.stdout_lines[-1] }}"
 
 - name: Include Zsh setup tasks
   include_tasks: zsh.yml
