@@ -28,3 +28,4 @@
   tags:
     - node
     - development
+  when: not ansible_env.WSL_DISTRO_NAME is defined
