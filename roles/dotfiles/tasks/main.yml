@@ -23,7 +23,16 @@
   shell: |
     cd {{ ansible_env.HOME }}/sw/dotfiles
     git submodule update --init --recursive nvim
+    cd nvim
+    git checkout main
+    git pull origin main
   changed_when: false
+
+- name: Include ZSH setup tasks
+  include_tasks: zsh.yml
+  tags:
+    - zsh
+    - dotfiles
 
 - name: Create symlinks for dotfiles
   file:

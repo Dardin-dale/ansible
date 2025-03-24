@@ -1,4 +1,4 @@
 ---
-dotfiles_repo: "https://github.com/Dardin-dale/dotfiles.git"
+dotfiles_repo: git@github.com:Dardin-dale/dotfiles.git
 dotfiles_version: "main"
 clean_install: true  # Set to true to remove existing dotfiles before installation

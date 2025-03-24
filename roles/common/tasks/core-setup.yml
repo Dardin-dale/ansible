@@ -48,17 +48,15 @@
     - core
     - neovim
 
-- name: Install Wayland-specific packages
+- name: Install Clipboard Utilities
   become: true
   apt:
     name:
-      - sway
       - wl-clipboard
     state: present
   tags:
     - install
     - core
-    - wayland
 
 - name: Remove conflicting packages
   become: true
