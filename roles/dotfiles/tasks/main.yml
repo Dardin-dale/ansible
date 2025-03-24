@@ -12,12 +12,13 @@
   when: clean_install is defined and clean_install
 
 - name: Clone dotfiles repository
-  git:
-    repo: "{{ dotfiles_repo }}"
-    dest: "{{ ansible_env.HOME }}/sw/dotfiles"
-    version: "{{ dotfiles_version | default('main') }}"
-    force: yes
-    update: yes
+  shell: |
+    source ~/.ssh/agent_env
+    git clone {{ dotfiles_repo }} {{ ansible_env.HOME }}/sw/dotfiles
+  args:
+    executable: /bin/bash
+    creates: "{{ ansible_env.HOME }}/sw/dotfiles"
+  when: clean_install is defined and clean_install
 
 - name: Initialize and update nvim submodule
   shell: |

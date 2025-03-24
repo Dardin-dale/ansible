@@ -1,3 +1,6 @@
 id_ed25519
 id_ed25519.pub
 /vars/sensitive
+# SSH agent environment
+.ssh/agent_env
+**/.ssh/agent_env
