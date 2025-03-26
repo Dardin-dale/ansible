@@ -1,14 +1,20 @@
 ---
+- name: Add VS Code apt key
+  become: yes
+  apt_key:
+    url: https://packages.microsoft.com/keys/microsoft.asc
+    state: present
+
+- name: Add VS Code repository
+  become: yes
+  apt_repository:
+    repo: deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main
+    state: present
+    filename: vscode
+
 - name: Install VS Code
   become: yes
   apt:
-    deb: https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64
-
-- name: Install VS Code extensions
-  command: code --install-extension {{ item }}
-  loop:
-    - ms-vscode.cpptools
-    - rust-lang.rust-analyzer
-    - dbaeumer.vscode-eslint
-    - esbenp.prettier-vscode
-  changed_when: false
+    name: code
+    state: present
+    update_cache: yes
