@@ -1,0 +1,55 @@
+---
+- name: Create font directory
+  file:
+    path: "{{ ansible_env.HOME }}/.local/share/fonts"
+    state: directory
+    mode: '0755'
+
+- name: Check if Fira Code Nerd Font is already installed
+  find:
+    paths: "{{ ansible_env.HOME }}/.local/share/fonts"
+    patterns: "FiraCode*Nerd*Font*.ttf"
+  register: font_check
+
+- name: Download Fira Code Nerd Font from GitHub
+  get_url:
+    url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/FiraCode.zip"
+    dest: /tmp/firacode-nerd.zip
+  when: font_check.matched == 0
+
+- name: Create temporary directory for fonts
+  file:
+    path: /tmp/firacode-nerd
+    state: directory
+    mode: '0755'
+  when: font_check.matched == 0
+
+- name: Extract Fira Code Nerd Font
+  unarchive:
+    src: /tmp/firacode-nerd.zip
+    dest: /tmp/firacode-nerd
+    remote_src: yes
+  when: font_check.matched == 0
+
+- name: Install Fira Code Nerd Font
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_env.HOME }}/.local/share/fonts/"
+    mode: '0644'
+  with_fileglob:
+    - "/tmp/firacode-nerd/*.ttf"
+  when: font_check.matched == 0
+
+- name: Update font cache
+  command: fc-cache -f
+  changed_when: false
+  when: font_check.matched == 0
+
+- name: Clean up temporary font files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/firacode-nerd.zip"
+    - "/tmp/firacode-nerd"
+  when: font_check.matched == 0

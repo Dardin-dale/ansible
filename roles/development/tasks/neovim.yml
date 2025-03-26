@@ -1,0 +1,57 @@
+---
+- name: Check if Neovim is installed via apt
+  command: dpkg -l neovim
+  register: neovim_apt_check
+  failed_when: false
+  changed_when: false
+
+- name: Remove Neovim if installed via apt
+  become: yes
+  apt:
+    name: neovim
+    state: absent
+  when: neovim_apt_check.rc == 0
+
+- name: Create AppImages directory
+  file:
+    path: "{{ ansible_env.HOME }}/.local/share/appimages"
+    state: directory
+    mode: '0755'
+
+- name: Download latest Neovim appimage
+  get_url:
+    url: "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.appimage"
+    dest: "{{ ansible_env.HOME }}/.local/share/appimages/nvim.appimage"
+    mode: '0755'
+  register: neovim_download
+
+- name: Create Neovim bin directory
+  file:
+    path: "{{ ansible_env.HOME }}/.local/bin"
+    state: directory
+    mode: '0755'
+
+- name: Create Neovim symlink
+  file:
+    src: "{{ ansible_env.HOME }}/.local/share/appimages/nvim.appimage"
+    dest: "{{ ansible_env.HOME }}/.local/bin/nvim"
+    state: link
+    force: yes
+
+- name: Ensure Neovim dependencies are installed
+  become: yes
+  apt:
+    name:
+      - libfuse2  # Required for AppImage
+    state: present
+
+- name: Add Neovim to PATH in shell configuration files
+  blockinfile:
+    path: "{{ item }}"
+    block: |
+      # Add local bin to PATH for Neovim
+      export PATH="$HOME/.local/bin:$PATH"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Neovim"
+  loop:
+    - "{{ ansible_env.HOME }}/.bashrc"
+    - "{{ ansible_env.HOME }}/.zshrc"

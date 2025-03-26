@@ -38,9 +38,6 @@
       - zsh
       - tmux
       
-      # Text editors
-      - neovim
-      
       # GNOME tools
       #- dconf-editor
     state: present
