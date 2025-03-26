@@ -36,3 +36,10 @@
     - neovim
     - development
 
+- name: Include WSL clipboard setup tasks
+  include_tasks: wsl-clipboard.yml
+  tags:
+    - wsl
+    - clipboard
+    - development
+

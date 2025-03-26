@@ -1,0 +1,61 @@
+---
+- name: Check if running in WSL
+  shell: grep -q "microsoft" /proc/version || echo "not_wsl"
+  register: wsl_check
+  changed_when: false
+  failed_when: false
+
+- name: Set fact for WSL environment
+  set_fact:
+    is_wsl: "{{ wsl_check.stdout != 'not_wsl' }}"
+
+- name: Create directory for clipboard utilities
+  file:
+    path: "{{ ansible_env.HOME }}/.local/bin"
+    state: directory
+    mode: '0755'
+  when: is_wsl
+
+# Install win32yank for WSL clipboard integration
+- name: Download win32yank
+  get_url:
+    url: "https://github.com/equalsraf/win32yank/releases/download/v0.0.4/win32yank-x64.zip"
+    dest: "/tmp/win32yank.zip"
+  when: is_wsl
+
+- name: Extract win32yank
+  unarchive:
+    src: "/tmp/win32yank.zip"
+    dest: "/tmp"
+    remote_src: yes
+  when: is_wsl
+
+- name: Install win32yank
+  copy:
+    src: "/tmp/win32yank.exe"
+    dest: "{{ ansible_env.HOME }}/.local/bin/win32yank.exe"
+    mode: '0755'
+  when: is_wsl
+
+- name: Create Neovim clipboard config for WSL
+  blockinfile:
+    path: "{{ ansible_env.HOME }}/.config/nvim/init.lua"
+    create: yes
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK - WSL CLIPBOARD"
+    block: |
+      -- WSL clipboard integration
+      if vim.fn.has('wsl') == 1 then
+        vim.g.clipboard = {
+          name = 'win32yank-wsl',
+          copy = {
+            ['+'] = 'win32yank.exe -i --crlf',
+            ['*'] = 'win32yank.exe -i --crlf',
+          },
+          paste = {
+            ['+'] = 'win32yank.exe -o --lf',
+            ['*'] = 'win32yank.exe -o --lf',
+          },
+          cache_enabled = true,
+        }
+      end
+  when: is_wsl
