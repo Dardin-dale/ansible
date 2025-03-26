@@ -34,6 +34,7 @@
       - clangd
       
       # Shell and terminal utilities
+      - keychain
       - zsh
       - tmux
       

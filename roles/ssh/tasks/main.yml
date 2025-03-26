@@ -25,19 +25,16 @@
     key: "{{ lookup('pipe', 'ssh-keyscan -t rsa github.com') }}"
     state: present
 
-- name: Start SSH agent and store environment
+- name: Set up keychain for SSH key management
   shell: |
-    eval $(ssh-agent -s)
-    echo "export SSH_AUTH_SOCK=$SSH_AUTH_SOCK" > ~/.ssh/agent_env
-    echo "export SSH_AGENT_PID=$SSH_AGENT_PID" >> ~/.ssh/agent_env
+    # Install keychain if not already installed
+    which keychain || sudo apt-get install -y keychain
+    
+    # Start keychain and add your key
+    keychain --nogui {{ ansible_env.HOME }}/.ssh/id_ed25519
+    
+    # Create SSH agent environment file
+    keychain --quiet --agents ssh --eval id_ed25519 > ~/.ssh/agent_env
     chmod 600 ~/.ssh/agent_env
-  args:
-    executable: /bin/bash
-    creates: "{{ ansible_env.HOME }}/.ssh/agent_env"
-
-- name: Load SSH agent environment
-  shell: |
-    source ~/.ssh/agent_env
-    ssh-add {{ ansible_env.HOME }}/.ssh/id_ed25519
   args:
     executable: /bin/bash

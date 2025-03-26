@@ -1,4 +1,3 @@
----
 - name: Check if Rust is installed
   command: which rustc
   register: rust_check
@@ -29,7 +28,10 @@
     - "{{ ansible_env.HOME }}/.zshrc"
 
 - name: Install common Rust tools and components
-  command: rustup component add {{ item }}
+  shell: |
+    export PATH="$HOME/.cargo/bin:$PATH"
+    source "$HOME/.cargo/env" || true
+    rustup component add {{ item }}
   loop:
     - rustfmt
     - clippy
@@ -39,7 +41,11 @@
 
 - name: Install rust-analyzer
   shell: |
+    source $HOME/.cargo/env
     rustup +nightly component add rust-analyzer-preview
-    ln -s ~/.rustup/toolchains/nightly-*/bin/rust-analyzer ~/.cargo/bin/
+    if [ ! -f "$HOME/.cargo/bin/rust-analyzer" ]; then
+      ln -sf $(find $HOME/.rustup/toolchains/nightly-*/bin/rust-analyzer -type f | head -n 1) $HOME/.cargo/bin/rust-analyzer 2>/dev/null || true
+    fi
   args:
+    executable: /bin/bash
     creates: "{{ ansible_env.HOME }}/.cargo/bin/rust-analyzer"

@@ -46,9 +46,26 @@
       #!/bin/bash
       # Source the environment
       source ~/.bashrc
+      
+      # Check if fnm exists in PATH
+      if ! command -v fnm &> /dev/null; then
+        # Try to find fnm and add it to PATH
+        FNM_PATH="$HOME/.local/share/fnm"
+        if [ -d "$FNM_PATH" ]; then
+          export PATH="$FNM_PATH:$PATH"
+        fi
+      fi
+      
+      # Verify fnm is available
+      if ! command -v fnm &> /dev/null; then
+        echo "ERROR: fnm not found in PATH"
+        exit 1
+      fi
+      
       # Try to install Node.js
       fnm install --lts
       fnm default lts-latest
+      
       # Verify installation
       node -v
       exit 0
@@ -57,3 +74,5 @@
   shell: "/tmp/install_node.sh"
   register: node_install
   changed_when: true
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/share/fnm:{{ ansible_env.PATH }}"
