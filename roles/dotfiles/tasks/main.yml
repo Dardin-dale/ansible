@@ -20,11 +20,20 @@
     creates: "{{ ansible_env.HOME }}/sw/dotfiles"
   when: clean_install is defined and clean_install
 
-- name: Initialize and update nvim submodule
+- name: Initialize nvim submodule
   shell: |
     cd {{ ansible_env.HOME }}/sw/dotfiles
     git submodule init
+  changed_when: false
+
+- name: Update nvim submodule and set to track main branch
+  shell: |
+    cd {{ ansible_env.HOME }}/sw/dotfiles
     git submodule update --init --recursive nvim
+    cd nvim
+    git checkout main
+    git pull origin main
+    git branch --set-upstream-to=origin/main main
   changed_when: false
 
 - name: Include ZSH setup tasks
