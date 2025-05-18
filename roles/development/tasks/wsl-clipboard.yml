@@ -36,26 +36,3 @@
     dest: "{{ ansible_env.HOME }}/.local/bin/win32yank.exe"
     mode: '0755'
   when: is_wsl
-
-- name: Create Neovim clipboard config for WSL
-  blockinfile:
-    path: "{{ ansible_env.HOME }}/.config/nvim/init.lua"
-    create: yes
-    marker: "-- {mark} ANSIBLE MANAGED BLOCK - WSL CLIPBOARD"
-    block: |
-      -- WSL clipboard integration
-      if vim.fn.has('wsl') == 1 then
-        vim.g.clipboard = {
-          name = 'win32yank-wsl',
-          copy = {
-            ['+'] = 'win32yank.exe -i --crlf',
-            ['*'] = 'win32yank.exe -i --crlf',
-          },
-          paste = {
-            ['+'] = 'win32yank.exe -o --lf',
-            ['*'] = 'win32yank.exe -o --lf',
-          },
-          cache_enabled = true,
-        }
-      end
-  when: is_wsl

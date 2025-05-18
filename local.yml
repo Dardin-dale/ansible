@@ -28,6 +28,13 @@
       tags:
         - always
 
+    - name: Check for work submodule
+      stat:
+        path: "{{ playbook_dir }}/work"
+      register: work_submodule
+      tags:
+        - always
+
   roles:
     - role: common
       become: yes
@@ -35,6 +42,11 @@
     - role: ssh
     - role: dotfiles
     - role: development
+    - role: work
+      become: yes
+      when: work_submodule.stat.exists
+      tags: 
+        - work
       # become: yes
       # Add other roles as needed
 
