@@ -38,78 +38,50 @@
       - "{{ ansible_env.HOME }}/.zshrc"
   when: fnm_check.rc != 0
 
-- name: Execute Node.js installation with fnm via a separate shell script
-  copy:
-      dest: "/tmp/install_node.sh"
-      mode: "0755"
-      content: |
-          #!/bin/bash
-          # Source the environment
-          source ~/.bashrc
+- name: Install Node.js and global packages
+  shell: |
+      #!/bin/bash
+      set -e
 
-          # Check if fnm exists in PATH
-          if ! command -v fnm &> /dev/null; then
-            # Try to find fnm and add it to PATH
-            FNM_PATH="$HOME/.local/share/fnm"
-            if [ -d "$FNM_PATH" ]; then
-              export PATH="$FNM_PATH:$PATH"
-            fi
-          fi
+      # Set up fnm environment
+      export PATH="$HOME/.local/share/fnm:$PATH"
 
-          # Verify fnm is available
-          if ! command -v fnm &> /dev/null; then
-            echo "ERROR: fnm not found in PATH"
-            exit 1
-          fi
+      # Initialize fnm if available
+      if command -v fnm &> /dev/null; then
+          eval "$(fnm env)"
+      else
+          echo "ERROR: fnm not found in PATH"
+          exit 1
+      fi
 
-          # Try to install Node.js
+      # Install Node.js LTS if not already installed
+      if ! fnm list | grep -q "lts"; then
           fnm install --lts
           fnm default lts-latest
+      fi
 
-          # Verify installation
-          node -v
-          exit 0
+      # Verify Node.js installation
+      node -v
+      npm -v
 
-- name: Run Node.js installation
-  shell: "/tmp/install_node.sh"
-  register: node_install
+      # Install global npm packages
+      npm install -g @anthropic-ai/claude-code
+      npm install -g yarn
+      npm install -g pnpm
+      npm install -g http-server
+      npm install -g nodemon
+      npm install -g serve
+      npm install -g tldr
+      npm install -g npm-check-updates
+
+      echo "Node.js and global packages installed successfully"
+  args:
+      executable: /bin/bash
+  register: node_and_packages_install
   changed_when: true
   environment:
       PATH: "{{ ansible_env.HOME }}/.local/share/fnm:{{ ansible_env.PATH }}"
-
-- name: Install global npm packages
-  copy:
-      dest: "/tmp/install_global_packages.sh"
-      mode: "0755"
-      content: |
-          #!/bin/bash
-          # Source the environment to get fnm
-          source ~/.bashrc
-          export PATH="$HOME/.local/share/fnm:$PATH"
-          eval "$(fnm env 2>/dev/null || true)"
-
-          # Essential development tools
-          npm install -g @anthropic-ai/claude-cli
-          npm install -g yarn
-          npm install -g pnpm
-
-          # Development servers & utilities (as requested)
-          npm install -g http-server
-          npm install -g nodemon
-          npm install -g serve
-
-          # CLI productivity tools
-          npm install -g tldr
-          npm install -g npm-check-updates
-
-          echo "Global packages installed successfully"
-
-- name: Install global npm packages
-  shell: "/tmp/install_global_packages.sh"
-  register: global_packages_install
-  changed_when: true
-  environment:
-      PATH: "{{ ansible_env.HOME }}/.local/share/fnm:{{ ansible_env.PATH }}"
+      HOME: "{{ ansible_env.HOME }}"
 
 - name: Create Claude Code bash wrapper script
   copy:
@@ -118,21 +90,15 @@
       content: |
           #!/bin/bash
           # Wrapper script to run Claude Code in bash to avoid zsh rendering issues
-
-          # If we're currently in zsh, switch to bash for claude
-          if [ "$0" = "zsh" ] || [ -n "$ZSH_VERSION" ]; then
-              exec bash -c "$(which claude) $*"
-          else
-              # Already in bash or another shell, run claude directly
-              exec "$(which claude)" "$@"
-          fi
+          # This script always runs in bash environment regardless of calling shell
+          exec claude "$@"
 
 - name: Add Claude Code aliases to shell configuration files
   blockinfile:
       path: "{{ item }}"
       block: |
-          # Claude Code aliases for shell switching
-          alias claude-bash='bash -c "$(which claude) $*"'
+          # Claude Code function for shell switching
+          alias claude-bash='~/.local/bin/claude-bash'
           alias cb='claude-bash'  # Short alias
       marker: "# {mark} ANSIBLE MANAGED BLOCK - Claude Code"
   loop:

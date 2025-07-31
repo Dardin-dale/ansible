@@ -31,16 +31,35 @@
           - typer # Modern CLI framework
       virtualenv: "{{ ansible_env.HOME }}/.local/share/python-envs/default"
 
-- name: Add Python virtual environment to shell configuration files
+- name: Add Python virtual environment management to shell configuration files
   blockinfile:
       path: "{{ item }}"
       block: |
-          # Python virtual environment as default
-          export VIRTUAL_ENV="$HOME/.local/share/python-envs/default"
-          export PATH="$VIRTUAL_ENV/bin:$PATH"
-          # Override system python with venv python
-          alias python="$VIRTUAL_ENV/bin/python"
-          alias pip="$VIRTUAL_ENV/bin/pip"
+          # Python virtual environment management functions
+          function pyvenv_activate() {
+              export VIRTUAL_ENV="$HOME/.local/share/python-envs/default"
+              export PATH="$VIRTUAL_ENV/bin:$PATH"
+              export PYTHON_VENV_ACTIVE=1
+              echo "✓ Python virtual environment activated"
+          }
+
+          function pyvenv_deactivate() {
+              if [ -n "$PYTHON_VENV_ACTIVE" ]; then
+                  # Remove venv from PATH
+                  export PATH=$(echo $PATH | sed -e "s|$HOME/.local/share/python-envs/default/bin:||g")
+                  unset VIRTUAL_ENV
+                  unset PYTHON_VENV_ACTIVE
+                  echo "✓ Python virtual environment deactivated"
+              else
+                  echo "No Python virtual environment currently active"
+              fi
+          }
+
+          # Convenience aliases
+          alias pyenv-on='pyvenv_activate'
+          alias pyenv-off='pyvenv_deactivate'
+          alias python-on='pyvenv_activate'
+          alias python-off='pyvenv_deactivate'
       marker: "# {mark} ANSIBLE MANAGED BLOCK - Python Virtual Environment"
   loop:
       - "{{ ansible_env.HOME }}/.bashrc"
