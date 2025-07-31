@@ -6,14 +6,14 @@
 
 - name: Create temporary installation script for fnm
   copy:
-    dest: "/tmp/install_fnm.sh"
-    mode: '0755'
-    content: |
-      #!/bin/bash
-      curl -fsSL https://fnm.vercel.app/install | bash
-      source ~/.bashrc
-      echo "FNM installed at: $(which fnm 2>/dev/null || echo 'not found')"
-      exit 0
+      dest: "/tmp/install_fnm.sh"
+      mode: "0755"
+      content: |
+          #!/bin/bash
+          curl -fsSL https://fnm.vercel.app/install | bash
+          source ~/.bashrc
+          echo "FNM installed at: $(which fnm 2>/dev/null || echo 'not found')"
+          exit 0
   when: fnm_check.rc != 0
 
 - name: Install fnm
@@ -23,56 +23,118 @@
 
 - name: Debug fnm installation
   debug:
-    var: fnm_install_result
+      var: fnm_install_result
   when: fnm_check.rc != 0
 
 - name: Add fnm to shell configuration files
   blockinfile:
-    path: "{{ item }}"
-    block: |
-      export PATH=$HOME/.local/share/fnm:$PATH
-      eval "$(fnm env --use-on-cd 2>/dev/null || true)"
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - fnm"
+      path: "{{ item }}"
+      block: |
+          export PATH=$HOME/.local/share/fnm:$PATH
+          eval "$(fnm env --use-on-cd 2>/dev/null || true)"
+      marker: "# {mark} ANSIBLE MANAGED BLOCK - fnm"
   loop:
-    - "{{ ansible_env.HOME }}/.bashrc"
-    - "{{ ansible_env.HOME }}/.zshrc"
+      - "{{ ansible_env.HOME }}/.bashrc"
+      - "{{ ansible_env.HOME }}/.zshrc"
   when: fnm_check.rc != 0
 
 - name: Execute Node.js installation with fnm via a separate shell script
   copy:
-    dest: "/tmp/install_node.sh"
-    mode: '0755'
-    content: |
-      #!/bin/bash
-      # Source the environment
-      source ~/.bashrc
-      
-      # Check if fnm exists in PATH
-      if ! command -v fnm &> /dev/null; then
-        # Try to find fnm and add it to PATH
-        FNM_PATH="$HOME/.local/share/fnm"
-        if [ -d "$FNM_PATH" ]; then
-          export PATH="$FNM_PATH:$PATH"
-        fi
-      fi
-      
-      # Verify fnm is available
-      if ! command -v fnm &> /dev/null; then
-        echo "ERROR: fnm not found in PATH"
-        exit 1
-      fi
-      
-      # Try to install Node.js
-      fnm install --lts
-      fnm default lts-latest
-      
-      # Verify installation
-      node -v
-      exit 0
+      dest: "/tmp/install_node.sh"
+      mode: "0755"
+      content: |
+          #!/bin/bash
+          # Source the environment
+          source ~/.bashrc
+
+          # Check if fnm exists in PATH
+          if ! command -v fnm &> /dev/null; then
+            # Try to find fnm and add it to PATH
+            FNM_PATH="$HOME/.local/share/fnm"
+            if [ -d "$FNM_PATH" ]; then
+              export PATH="$FNM_PATH:$PATH"
+            fi
+          fi
+
+          # Verify fnm is available
+          if ! command -v fnm &> /dev/null; then
+            echo "ERROR: fnm not found in PATH"
+            exit 1
+          fi
+
+          # Try to install Node.js
+          fnm install --lts
+          fnm default lts-latest
+
+          # Verify installation
+          node -v
+          exit 0
 
 - name: Run Node.js installation
   shell: "/tmp/install_node.sh"
   register: node_install
   changed_when: true
   environment:
-    PATH: "{{ ansible_env.HOME }}/.local/share/fnm:{{ ansible_env.PATH }}"
+      PATH: "{{ ansible_env.HOME }}/.local/share/fnm:{{ ansible_env.PATH }}"
+
+- name: Install global npm packages
+  copy:
+      dest: "/tmp/install_global_packages.sh"
+      mode: "0755"
+      content: |
+          #!/bin/bash
+          # Source the environment to get fnm
+          source ~/.bashrc
+          export PATH="$HOME/.local/share/fnm:$PATH"
+          eval "$(fnm env 2>/dev/null || true)"
+
+          # Essential development tools
+          npm install -g @anthropic-ai/claude-cli
+          npm install -g yarn
+          npm install -g pnpm
+
+          # Development servers & utilities (as requested)
+          npm install -g http-server
+          npm install -g nodemon
+          npm install -g serve
+
+          # CLI productivity tools
+          npm install -g tldr
+          npm install -g npm-check-updates
+
+          echo "Global packages installed successfully"
+
+- name: Install global npm packages
+  shell: "/tmp/install_global_packages.sh"
+  register: global_packages_install
+  changed_when: true
+  environment:
+      PATH: "{{ ansible_env.HOME }}/.local/share/fnm:{{ ansible_env.PATH }}"
+
+- name: Create Claude Code bash wrapper script
+  copy:
+      dest: "{{ ansible_env.HOME }}/.local/bin/claude-bash"
+      mode: "0755"
+      content: |
+          #!/bin/bash
+          # Wrapper script to run Claude Code in bash to avoid zsh rendering issues
+
+          # If we're currently in zsh, switch to bash for claude
+          if [ "$0" = "zsh" ] || [ -n "$ZSH_VERSION" ]; then
+              exec bash -c "$(which claude) $*"
+          else
+              # Already in bash or another shell, run claude directly
+              exec "$(which claude)" "$@"
+          fi
+
+- name: Add Claude Code aliases to shell configuration files
+  blockinfile:
+      path: "{{ item }}"
+      block: |
+          # Claude Code aliases for shell switching
+          alias claude-bash='bash -c "$(which claude) $*"'
+          alias cb='claude-bash'  # Short alias
+      marker: "# {mark} ANSIBLE MANAGED BLOCK - Claude Code"
+  loop:
+      - "{{ ansible_env.HOME }}/.bashrc"
+      - "{{ ansible_env.HOME }}/.zshrc"

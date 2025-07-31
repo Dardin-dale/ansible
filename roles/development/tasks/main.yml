@@ -2,44 +2,49 @@
 - name: Include Golang setup tasks
   include_tasks: golang.yml
   tags:
-    - golang
-    - development
+      - golang
+      - development
 
 - name: Include Node.js setup tasks
   include_tasks: node.yml
   tags:
-    - node
-    - development
+      - node
+      - development
 
 - name: Include Rust setup tasks
   include_tasks: rust.yml
   tags:
-    - rust
-    - development
-    
+      - rust
+      - development
+
+- name: Include Python setup tasks
+  include_tasks: python.yml
+  tags:
+      - python
+      - development
+
 - name: Include Docker setup tasks
   include_tasks: docker.yml
   tags:
-    - node
-    - development
-    
+      - node
+      - development
+
 - name: Include VS Code setup tasks
   include_tasks: vscode.yml
   tags:
-    - node
-    - development
+      - node
+      - development
   when: not ansible_env.WSL_DISTRO_NAME is defined
 
 - name: Include Neovim setup tasks
   include_tasks: neovim.yml
   tags:
-    - neovim
-    - development
+      - neovim
+      - development
 
 - name: Include WSL clipboard setup tasks
   include_tasks: wsl-clipboard.yml
   tags:
-    - wsl
-    - clipboard
-    - development
-
+      - wsl
+      - clipboard
+      - development

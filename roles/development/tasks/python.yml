@@ -1,0 +1,47 @@
+---
+- name: Create Python virtual environment directory
+  file:
+      path: "{{ ansible_env.HOME }}/.local/share/python-envs"
+      state: directory
+      mode: "0755"
+
+- name: Create default Python virtual environment
+  command: python3 -m venv {{ ansible_env.HOME }}/.local/share/python-envs/default
+  args:
+      creates: "{{ ansible_env.HOME }}/.local/share/python-envs/default/bin/python"
+
+- name: Upgrade pip in virtual environment
+  command: "{{ ansible_env.HOME }}/.local/share/python-envs/default/bin/pip install --upgrade pip"
+  changed_when: false
+
+- name: Install essential Python packages in virtual environment
+  pip:
+      name:
+          # Core tools
+          - wheel
+          - setuptools
+          - virtualenv
+          - pipx
+
+          # Useful development packages
+          - requests # HTTP library
+          - rich # Better terminal output
+          - click # CLI framework
+          - httpx # Modern HTTP client
+          - typer # Modern CLI framework
+      virtualenv: "{{ ansible_env.HOME }}/.local/share/python-envs/default"
+
+- name: Add Python virtual environment to shell configuration files
+  blockinfile:
+      path: "{{ item }}"
+      block: |
+          # Python virtual environment as default
+          export VIRTUAL_ENV="$HOME/.local/share/python-envs/default"
+          export PATH="$VIRTUAL_ENV/bin:$PATH"
+          # Override system python with venv python
+          alias python="$VIRTUAL_ENV/bin/python"
+          alias pip="$VIRTUAL_ENV/bin/pip"
+      marker: "# {mark} ANSIBLE MANAGED BLOCK - Python Virtual Environment"
+  loop:
+      - "{{ ansible_env.HOME }}/.bashrc"
+      - "{{ ansible_env.HOME }}/.zshrc"
